@@ -1,42 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import ThemeBtn from './components/ThemeBtn.jsx'
-import { ThemeProvider } from './context/theme.js'
-import { useEffect } from 'react'
-import Card from './components/card.jsx'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
 function App() {
-  const [themeMode, setThemeMode] = useState('light')
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    isSubmitting,
+  } = useForm();
 
-  const darkTheme = () => {
-    setThemeMode('dark')
-  }
-
-  const lightTheme = () => {
-    setThemeMode('light')
-  }
-
-  useEffect(() => {
-    document.querySelector('html').classList.remove('dark', "light")
-    document.querySelector('html').classList.add(themeMode)
-  }, [themeMode])
+  const onSubmit = async (data) => {
+    let r = await fetch("http://localhost:3000/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Specify the content type
+      },
+      body: JSON.stringify(data),
+    });
+    let res = await r.text();
+    console.log(data, res);
+  };
 
   return (
-    <ThemeProvider value={{themeMode, darkTheme, lightTheme}}>
-      <div className="flex flex-wrap min-h-screen items-center">
-          <div className="w-full">
-              <div className="w-full max-w-sm mx-auto flex justify-end mb-4">
-                  <ThemeBtn />
-              </div>
-
-              <div className="w-full max-w-sm mx-auto">
-                  <Card />
-              </div>
-          </div>
+    <>
+      {isSubmitting && <div>Loading....</div>}
+      <div className="w-full max-w-xs">
+        <form action="" onSubmit={handleSubmit(onSubmit)}>
+          <input
+            className="m-4 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            type="text"
+            placeholder="username"
+            {...register("username", {
+              required: true,
+              minLength: { value: 3, message: "Min lenght is 3" },
+            })}
+          />
+          {errors.username && <div>{errors.username.message}</div>}
+          <input
+            className="m-4 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            type="password"
+            placeholder="password"
+            {...register("password")}
+          />
+          <input
+            disable={isSubmitting}
+            type="submit"
+            value="Submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full ml-4"
+          />
+        </form>
       </div>
-    </ThemeProvider>
-  )
+    </>
+  );
 }
 
-export default App
+export default App;
